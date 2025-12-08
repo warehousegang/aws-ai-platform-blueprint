@@ -1,151 +1,32 @@
-#############################################
-# VPC
-#############################################
+############################################################
+# VPC Module
+############################################################
 module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.5.1"
+  source = "./modules/vpc"
 
-  name = "${var.cluster_name}-vpc"
-  cidr = var.vpc_cidr
-
-  azs = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
-
-  public_subnets  = ["10.10.1.0/24", "10.10.2.0/24", "10.10.3.0/24"]
-  private_subnets = ["10.10.11.0/24", "10.10.12.0/24", "10.10.13.0/24"]
-
-  enable_nat_gateway = true
+  aws_region   = var.aws_region
+  cluster_name = var.cluster_name
+  vpc_cidr     = var.vpc_cidr
 }
 
-#############################################
-# EKS Cluster
-#############################################
+############################################################
+# EKS Module
+############################################################
 module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "20.8.5"
+  source = "./modules/eks"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.30"
+  aws_region      = var.aws_region
 
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
-
-  enable_irsa = true
-
-  eks_managed_node_groups = {
-    default = {
-      desired_size   = 2
-      max_size       = 4
-      min_size       = 1
-      instance_types = ["t3.large"]
-    }
-  }
+  vpc_id          = module.vpc.vpc_id
+  private_subnets = module.vpc.private_subnets
 }
 
-#############################################
-# Namespaces for Observability Stack
-#############################################
-resource "kubernetes_namespace" "observability" {
-  metadata {
-    name = "observability"
-  }
-}
+############################################################
+# Observability Module
+############################################################
+module "observability" {
+  source = "./modules/observability"
 
-#############################################
-# Helm: Prometheus
-#############################################
-resource "helm_release" "prometheus" {
-  name       = "prometheus"
-  repository = "https://prometheus-community.github.io/helm-charts"
-  chart      = "kube-prometheus-stack"
-  version    = "56.6.2"
-
-  namespace = kubernetes_namespace.observability.metadata[0].name
-
-  values = [
-    file("${path.module}/../charts/prometheus/values.yaml")
-  ]
-
-  depends_on = [
-    kubernetes_namespace.observability
-  ]
-}
-
-#############################################
-# Helm: Loki
-#############################################
-resource "helm_release" "loki" {
-  name       = "loki"
-  repository = "https://grafana.github.io/helm-charts"
-  chart      = "loki"
-  version    = "6.6.3"
-
-  namespace = kubernetes_namespace.observability.metadata[0].name
-
-  values = [
-    file("${path.module}/../charts/loki/values.yaml")
-  ]
-
-  depends_on = [
-    kubernetes_namespace.observability
-  ]
-}
-
-#############################################
-# Helm: Grafana
-#############################################
-resource "helm_release" "grafana" {
-  name       = "grafana"
-  repository = "https://grafana.github.io/helm-charts"
-  chart      = "grafana"
-  version    = "7.3.9"
-
-  namespace = kubernetes_namespace.observability.metadata[0].name
-
-  values = [
-    file("${path.module}/../charts/grafana/values.yaml")
-  ]
-
-  depends_on = [
-    kubernetes_namespace.observability
-  ]
-}
-
-#############################################
-# Helm: Promtail
-#############################################
-resource "helm_release" "promtail" {
-  name       = "promtail"
-  repository = "https://grafana.github.io/helm-charts"
-  chart      = "promtail"
-  version    = "6.15.5"
-
-  namespace = kubernetes_namespace.observability.metadata[0].name
-
-  values = [
-    file("${path.module}/../charts/promtail/values.yaml")
-  ]
-
-  depends_on = [
-    kubernetes_namespace.observability
-  ]
-}
-
-#############################################
-# Helm: Tempo
-#############################################
-resource "helm_release" "tempo" {
-  name       = "tempo"
-  repository = "https://grafana.github.io/helm-charts"
-  chart      = "tempo"
-  version    = "1.7.0"
-
-  namespace = kubernetes_namespace.observability.metadata[0].name
-
-  values = [
-    file("${path.module}/../charts/tempo/values.yaml")
-  ]
-
-  depends_on = [
-    kubernetes_namespace.observability
-  ]
+  namespace = "observability"
 }

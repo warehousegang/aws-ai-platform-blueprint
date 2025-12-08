@@ -11,9 +11,9 @@ override.tf.json
 *.tfvars.json
 
 # Helm artifacts
-charts/**/charts/
-charts/**/tmp/
-charts/**/Chart.lock
+modules/observability/charts/**/charts/
+modules/observability/charts/**/tmp/
+modules/observability/charts/**/Chart.lock
 
 # Kubernetes junk
 *.orig
