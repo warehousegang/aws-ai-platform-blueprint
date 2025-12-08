@@ -1,10 +1,4 @@
 
-#######################################################
-# VPC MODULE
-#######################################################
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.5.1"
 
   name = "${var.cluster_name}-vpc"
   cidr = var.vpc_cidr
@@ -28,4 +22,5 @@ module "vpc" {
   ]
 
   enable_nat_gateway = true
+  single_nat_gateway = true
 }
