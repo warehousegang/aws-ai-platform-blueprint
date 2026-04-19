@@ -182,28 +182,34 @@ The platform is intended to track:
 
 ```text
 .
-├── apps/
-│   ├── deployment.yaml
-│   ├── kustomization.yaml
-│   └── service.yaml
-├── bootstrap/
-│   └── argo-install.yaml
-├── gitops/
-│   ├── apps/
-│   │   ├── argocd.yaml
-│   │   └── podinfo.yaml
-│   └── projects/
-│       └── default-project.yaml
-├── infra/
-│   ├── main.tf
-│   ├── outputs.tf
-│   ├── providers.tf
-│   ├── variables.tf
-│   └── versions.tf
-├── scripts/
-│   ├── cleanup.sh
-│   └── deploy.sh
-└── README.md
+├── terraform-aws-ai-platform/
+│   ├── modules/
+│   │   ├── vpc/
+│   │   ├── eks/
+│   │   ├── s3/
+│   │   ├── sqs/
+│   │   ├── rds/
+│   │   ├── iam-irsa/
+│   │   └── observability/
+│   └── live/
+│       ├── dev/
+│       └── prod/
+│
+├── ai-platform-gitops/
+│   ├── clusters/
+│   │   ├── dev/
+│   │   └── prod/
+│   ├── platform/
+│   │   ├── ingress/
+│   │   ├── observability/
+│   │   ├── secrets/
+│   │   └── autoscaling/
+│   └── apps/
+│       ├── api-service/
+│       ├── ingestion-worker/
+│       ├── embedding-worker/
+│       ├── retrieval-service/
+│       └── inference-service/
 ```
 
 ### Directory Notes
